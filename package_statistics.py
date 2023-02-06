@@ -37,16 +37,32 @@ def silent_remove_file(path):
         pass
 
 
-def parse_contents_index(file_name):
+def parse_contents_index(file_name, number_of_packages):
     print('Parsing', file_name)
+
     with gzip.open(file_name, 'rb') as file:
-        print(file.read())
+        package_list = []
+        for line in file:
+            package_list.extend(line.decode().split()[-1].split(','))
+
+    package_stats = {}
+    for package in package_list:
+        if package in package_stats:
+            package_stats[package] += 1
+        else:
+            package_stats[package] = 1
+
+    package_stats = sorted(package_stats.items(), key=lambda x: x[1], reverse=True)
+
+    print()
+    for (order, package) in enumerate(package_stats[:number_of_packages], start=1):
+        print(f"{str(order) + '. ' + package[0]:<45} {package[1]}")
 
 
 if __name__ == '__main__':
     arch = parse_arguments().arch
     file_name = 'Contents-' + arch + '.gz'
     get_contents_index(arch, file_name)
-    parse_contents_index(file_name)
+    parse_contents_index(file_name, 10)
     silent_remove_file(file_name)
 
